@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@3.6.0/fonts/remixicon.css" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    * {
+      margin: 0%;
+      padding: 0%;
+      box-sizing: border-box;
+    }
+
+
+    html,
+    body {
+      height: 100%;
+      width: 100%;
+    }
+    #edit-icon{
+      color:white;
+      background-color: red;
+      border: 2px solid white;
+    }
+    .in{
+      display: flex;
+      align-items: end;
+    }
+    .out{
+      display: flex;
+      align-items: end;
+    }
+
+    .message-container {
+        max-height: 100%; /* Allow the message area to take the full height */
+       
+    }
+    .message-container::-webkit-scrollbar {
+    background: transparent;
+}
+.message-container::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.123);
+    height: 10px;
+    border-radius: 20px;
+}
+.message-container::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(0, 0, 0, 0.3);
+}
+  </style>
+
+</head>
+
+<body>
+
+  <div id="main"  class="h-full text-white w-full  pt-5 pl-5 bg-[#111B20] overflow-hidden">
+       <div id="wrapper" class="h-full w-full  flex bg-[#222E35] rounded-tl-[12px] overflow-hidden  ">
+         <div class="left w-[28vw]  text-white border-black border-r-[1px] bg-[#111B21]">
+           <div class="top p-2 px-4 flex justify-between items-center border-black border-b-[1px] bg-[#222E35]  ">
+             <div class="user flex gap-[9px] items-center  ">
+               <img class="h-[1.7rem] w-[1.7rem] object-cover rounded-full" src="<%= loggedInUser.profileImage %>" alt="">
+               <h2><%= loggedInUser.username %></h2>
+             </div>
+             <i class=" ri-pencil-line text-[17px] ml-[10vw]"></i>
+             <i id="groupicon" class="ri-group-fill mr-3"></i>
+           </div>
+           <div class="bottom ">
+            <div class="searchsection min-h-fit flex-col  ">
+              <div class="flex gap-[9px] items-center px-3 mt-[6px] bg-[#222E35] rounded-[10px] mb-1">
+               <input class="searchuser  w-full bg-[#222E35] placeholder:italic placeholder-[white] px-2 py-1 text-[12px] " type="text" placeholder="Search or start new chat" name="searchuser"> 
+              <i class="ri-search-line"></i>
+              </div>
+              <div class="suggestions bg-[#222E35] px-3">
+               
+                 
+              </div>
+            </div>
+             <div class="chats p-3">
+               <h1 class="block text-gray-300 text-sm font-semibold my-2">Friends</h1>
+             <% loggedInUser.friends.forEach((friend)=>{ %>
+              <div class="chat" onclick="openchat('event','<%= friend.username %>','<%= friend.profileImage %>')", id="shery_<%=friend._id%>" >
+                <div class="user px-0 py-[10px] flex gap-[.6rem] border-[#222E35] border-b-[1px] ">
+                  <img class="h-[1.8rem] w-[1.8rem] object-cover rounded-full" src="<%=friend.profileImage %>" alt="">
+                  <h3 class="text-[13px]"><%= friend.username %></h3>
+                </div>
+               </div>
+            <% })   %>
+            <h1 class="block text-gray-300 text-sm font-semibold my-2">Groups</h1>
+           
+             </div>
+           </div>
+         </div>
+         <div class="right w-full h-full  ">
+          
+          
+          <div style="display: none;" class="creategroup mx-auto p-4  h-[45vh] w-[40vw] absolute top-[20%] left-[30%] rounded-[10px] bg-zinc-900 p-7 ">
+            <h1 class="text-2xl font-bold ml-6 mb-4">Create Group</h1>
+            <form id="create-group-form" class=" shadow-md rounded px-8 pt-6 pb-8 mb-4" action="/creategroup" method="post">
+                <div class="mb-4">
+                    <label class="block text-gray-300 text-sm font-semibold mb-2" for="group-name">
+                        Group Name
+                    </label>
+                    <input class="shadow appearance-none border bg-zinc-800 rounded w-full py-2 px-3 text-white leading-tight focus:outline-none focus:shadow-outline"
+                        id="group-name" type="text" placeholder="Enter group name" required name="name">
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-200 text-sm font-semibold mb-2" for="group-description">
+                        Description
+                    </label>
+                    <textarea class="shadow appearance-none bg-zinc-800 border rounded w-full py-2 px-3 text-white leading-tight focus:outline-none focus:shadow-outline"
+                        id="group-description" placeholder="Enter group description " name="description"></textarea>
+                </div>
+                <div class="flex items-center justify-between">
+                    <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                        type="submit">
+                        Create Group
+                    </button>
+                    <button id="cancelbtn"  class="bg-zinc-600 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                    cancel
+                </button>
+                </div>
+            </form>
+        </div>
+             
+       
+         
+         </div>
+       </div>
+       </div>
+     
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+         //creategroup
+         document.querySelector('#groupicon').addEventListener("click",function(){
+          document.querySelector(".creategroup").style.display = "initial";
+         })
+          document.querySelector('#cancelbtn').addEventListener("click",function(){
+          document.querySelector(".creategroup").style.display = "none";
+         })
+         
+
+       var socket = io();
+       const username = '<%= loggedInUser.username %>'
+       
+       socket.emit('join-server', username)
+       let oppositeuser= null;
+  
+    const searchinput = document.querySelector(".searchuser")
+
+    searchinput.addEventListener('input', async ()=>{
+      searcheduser=searchinput.value;
+      await fetch(`/search/${searcheduser}`).then(raw => raw.json())
+      .then(searcheduser=>{
+        searcheduser.forEach(user => {
+          var clutter="";
+          clutter +=` <div onclick="appenduser(event,'${user.username}','${user.profileImage}','${user._id}')"  class="suggestion flex-col">
+                  <div  class="px-0 py-[10px] flex gap-[.6rem] border-[#222E35] border-b-[1px] ">
+                    <img class="h-[1.8rem] w-[1.8rem] object-cover rounded-full" src="${user.profileImage}" alt="">
+                    <h3 class="text-[13px]"> ${user.username}</h3>
+                  </div>
+                 </div>`
+
+                 document.querySelector(".suggestions ").innerHTML=clutter;
+                });
+        })
+
+        if(searchinput.value==''){
+          document.querySelector(".suggestions ").innerHTML="";
+        }
+      })
+
+      function appenduser(event,username,profile,id){
+         if (document.querySelector(`.chats #shery_${id}`)) {
+           return
+          }
+         //addfriend in database
+        addfriend(username);
+             //add user in chat section
+          var template=`<div class="chat" id="shery_${id}" >
+                 <div class="user px-0 py-[10px] flex gap-[.6rem] border-[#222E35] border-b-[1px] ">
+                   <img class="h-[1.8rem] w-[1.8rem] object-cover rounded-full" src="${profile}" alt="">
+                   <h3 class="text-[13px]">${username}</h3>
+                 </div>
+                </div>`;
+                document.querySelector(".chats").innerHTML+=template;
+               searchinput.value= "";
+               document.querySelector(".suggestions ").innerHTML="";
+        }
+
+      async function addfriend(username){
+       await fetch(`/addfriend/${username}`).then(raw=>raw.json()).then(loggedinuser=>{
+        console.log(loggedinuser);
+       })
+     } 
+    
+    document.querySelector("#main").addEventListener("click",function(){
+       document.querySelector(".suggestions ").innerHTML="";
+        searchinput.value="";
+    })
+
+async function openchat(event,username,profile){
+  
+      document.querySelector('.right').innerHTML = `<div class=" px-6 py-2 title h-[50px] w-full flex gap-4 items-center justify-left border-b-[2px]">
+    <img class="h-[2rem] w-[2rem] object-cover rounded-full" src="${profile}" alt="">
+    <h1 class="text-[20px]">${username}</h1>
+</div>
+<div class="messagebox p-9">
+    <div class="message-container w-full h-[80vh] bg-[#222E35] overflow-y-auto">
+        <div class="message w-full px-6 py-2 h-fit">
+            <!-- Your messages will be added here -->
+        </div>
+    </div>
+</div>
+<div class="msginput w-[75vw] bg-[#222E35] px-8  mb-3 flex items-center justify-center bg-[#222E35] absolute bottom-0 ">
+    
+  
+    <input type="search" id="search" class="chatinput block w-full p-4 ps-10 text-sm text-gray-900 border border-gray-300 rounded-lg bg-zinc-500 focus:ring-blue-500 focus:border-blue-500 dark:bg-[#111B20] dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500" type="text" placeholder="Enter Any Message" name="searchuser" />
+        <button onclick="sendMessage()" class="text-white absolute end-10 bottom-1.3 bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-lg  text-[1vw] px-6 py-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">send</button>
+</div>`
+
+
+      oppositeuser=username;
+      
+
+      await fetch(`/chathistory/${username}`).then(raw => raw.json()).then((chats)=>{
+          chats.forEach((chat) => {
+            if(chat.receiver == username){
+              outmsg(chat.data)
+            }else{
+              inmsg(chat.data)
+            }
+          })
+       })
+
+     
+    }
+    
+ 
+
+    function inmsg(message){
+      
+      document.querySelector(".message").innerHTML +=`<h1 class="inmsg px-4 py-1 w-full  rounded-[6px]     h-fit     text-[1vw] text-left mb-3">${message}</h1></p>`
+    }
+   
+   
+    function outmsg(message){
+      
+      document.querySelector(".message").innerHTML +=` <h1 class="outmsg px-4 py-1 w-full   rounded-[6px]    h-fit   text-[1vw] text-right mb-3">${message} </h1>`
+      
+       
+    }
+
+    function sendMessage() {
+      const message = document.querySelector('.chatinput').value
+      outmsg(message)
+
+      const messageObject = {
+        sender:username,
+        receiver:oppositeuser,
+        data:message,
+      }
+      socket.emit('send-private-message',messageObject)
+
+      document.querySelector('.chatinput').value = ""
+    }
+
+    socket.on('receive-private-message',messageObject =>{
+    inmsg(messageObject.data)
+    })
+  </script>
+</body>
+
+</html>
